@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MB Bank" />
+  <title>MB Bank</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #111; display: flex; justify-content: center; min-height: 100vh; color: #1a1a1a; }
+    .app { width: 100%; max-width: 430px; min-height: 100vh; background: #f2f4f8; position: relative; overflow-x: hidden; display: flex; flex-direction: column; }
+    .screen { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 30px; }
+    .screen.active { display: flex; }
+
+    /* Màu sắc chủ đạo MB */
+    :root { --mb-navy: #141ed2; --mb-dark: #1b224c; --mb-blue: #003594; }
+
+    /* Header chung */
+    .topbar { background: var(--mb-dark); color: #fff; padding: 48px 16px 14px; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 17px; }
+    .topbar .back-btn, .topbar .close-btn { cursor: pointer; font-size: 20px; width: 32px; text-align: center; user-select: none; }
+
+    /* 1. MÀN HÌNH ĐĂNG NHẬP */
+    #scr-login { background: linear-gradient(180deg, #0b1736 0%, #142864 55%, #1d398b 100%); color: #fff; padding: 60px 24px 30px; justify-content: space-between; }
+    .mb-logo { font-size: 32px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; justify-content: center; margin-bottom: 25px; }
+    .mb-star { color: #e60012; font-size: 34px; }
+    .login-avatar { width: 76px; height: 76px; border-radius: 50%; background: #fff; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 38px; border: 3px solid #3b82f6; }
+    .login-greet { text-align: center; font-size: 15px; opacity: 0.85; }
+    .login-name { text-align: center; font-size: 21px; font-weight: 700; margin: 4px 0 6px; text-transform: uppercase; }
+    .login-stk { text-align: center; font-size: 13px; opacity: 0.75; margin-bottom: 28px; }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+    .input-group input, .form-control { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.12); color: #fff; font-size: 15px; outline: none; }
+    .btn-primary { width: 100%; padding: 14px; border-radius: 10px; border: none; background: #141ed2; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+    .btn-primary:active { opacity: 0.85; }
+
+    /* 2. MÀN HÌNH CHÍNH (MAIN) */
+    .main-header { background: linear-gradient(135deg, #101942 0%, #1b2d78 100%); color: #fff; padding: 50px 18px 26px; border-bottom-left-radius: 22px; border-bottom-right-radius: 22px; }
+    .main-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .user-chip { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .user-chip-avatar { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid #4f8dfd; }
+    .balance-card { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); border-radius: 14px; padding: 16px; backdrop-filter: blur(8px); }
+    .balance-label { font-size: 12px; opacity: 0.8; display: flex; justify-content: space-between; }
+    .balance-val { font-size: 24px; font-weight: 700; margin: 6px 0 8px; letter-spacing: 0.5px; }
+    .stk-row { font-size: 13px; opacity: 0.9; display: flex; justify-content: space-between; align-items: center; }
+
+    .grid-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 18px; }
+    .action-card { background: #fff; border-radius: 14px; padding: 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; text-align: center; font-weight: 600; font-size: 14px; color: #1b224c; }
+    .action-icon { width: 46px; height: 46px; border-radius: 12px; background: #eef2ff; color: var(--mb-navy); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+
+    /* 3. CÀI ĐẶT TÀI KHOẢN (GIỐNG ẢNH CHỤP MÀN HÌNH) */
+    .profile-box { background: #fff; margin: 14px; padding: 16px; border-radius: 12px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .bee-avatar { width: 64px; height: 64px; border-radius: 50%; border: 2px solid #1e40af; background: #fff9db; display: flex; align-items: center; justify-content: center; font-size: 34px; flex-shrink: 0; }
+    .profile-info { flex: 1; text-align: center; }
+    .profile-info .p-name { color: #1d2b64; font-size: 18px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    .profile-info .p-user { color: #333; font-size: 12px; font-weight: 600; }
+    .setting-item { background: #fff; margin: 0 14px 12px; padding: 16px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; color: #1d2b64; box-shadow: 0 1px 4px rgba(0,0,0,0.05); cursor: pointer; }
+    .setting-btns { margin: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .btn-blue-rect { background: #141ed2; color: #fff; border: none; padding: 14px; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; }
+
+    /* 4. FORM CHUYỂN TIỀN & SỬA THÔNG TIN */
+    .card-section { background: #fff; margin: 14px; padding: 16px; border-radius: 12px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; font-weight: 600; }
+    .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; color: #111; background: #fff; outline: none; }
+    .field input:focus { border-color: var(--mb-navy); }
+
+    /* 5. BIÊN LAI CHUYỂN TIỀN (BILL) */
+    .bill-wrap { background: #fff; margin: 16px; border-radius: 16px; padding: 24px 18px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); text-align: center; }
+    .bill-check { width: 56px; height: 56px; border-radius: 50%; background: #16a34a; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 12px; }
+    .bill-title { font-size: 16px; font-weight: 700; color: #1b224c; }
+    .bill-amount { font-size: 28px; font-weight: 800; color: #141ed2; margin: 8px 0 4px; }
+    .bill-time { font-size: 12px; color: #6b7280; margin-bottom: 18px; }
+    .bill-divider { border-top: 1px dashed #d1d5db; margin: 14px 0; }
+    .bill-row { display: flex; justify-content: space-between; text-align: left; margin-bottom: 12px; font-size: 13.5px; gap: 12px; }
+    .bill-row .b-label { color: #6b7280; flex-shrink: 0; }
+    .bill-row .b-val { font-weight: 600; color: #111; text-align: right; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 1. MÀN HÌNH ĐĂNG NHẬP (login.xml / DangnhapActivity) -->
+  <div id="scr-login" class="screen active">
+    <div>
+      <div class="mb-logo"><span class="mb-star">★</span> MB</div>
+      <div class="login-avatar">🐝</div>
+      <div class="login-greet">Xin chào,</div>
+      <div class="login-name" id="lbl-login-name">ĐOÀN ANH HÀ</div>
+      <div class="login-stk" id="lbl-login-stk">0398291038501</div>
+
+      <div class="input-group">
+        <label>Tên đăng nhập / Số tài khoản</label>
+        <input type="text" id="inp-user" value="0398291038501" />
+      </div>
+      <div class="input-group">
+        <label>Mật khẩu</label>
+        <input type="password" id="inp-pass" value="DoanAnhHa@2024" />
+      </div>
+      <button class="btn-primary" onclick="goScreen('scr-main')">ĐĂNG NHẬP</button>
+    </div>
+    <div style="text-align:center; font-size:12px; opacity:0.7;">MB Bank Digital Banking</div>
+  </div>
+
+  <!-- 2. MÀN HÌNH CHÍNH (main.xml / MainActivity) -->
+  <div id="scr-main" class="screen">
+    <div class="main-header">
+      <div class="main-top-row">
+        <div class="user-chip" onclick="goScreen('scr-taikhoan')">
+          <div class="user-chip-avatar">🐝</div>
+          <div>
+            <div style="font-size:12px; opacity:0.8;">Xin chào,</div>
+            <div style="font-size:16px; font-weight:700;" id="lbl-main-name">ĐOÀN ANH HÀ</div>
+          </div>
+        </div>
+        <div style="font-weight:800; font-size:20px;"><span style="color:#e60012">★</span> MB</div>
+      </div>
+
+      <div class="balance-card">
+        <div class="balance-label">
+          <span>Tài khoản nguồn</span>
+          <span style="cursor:pointer; text-decoration:underline;" onclick="goScreen('scr-suathongtin')">Sửa số dư / TT</span>
+        </div>
+        <div class="balance-val"><span id="lbl-main-bal">50,000,000</span> VND</div>
+        <div class="stk-row">
+          <span>STK: <strong id="lbl-main-stk">0398291038501</strong></span>
+          <span style="font-size:12px; cursor:pointer;" onclick="goScreen('scr-taikhoannguon')">Chi tiết &gt;</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-actions">
+      <div class="action-card" onclick="goScreen('scr-chuyentien')">
+        <div class="action-icon">💸</div>
+        <span>Chuyển tiền</span>
+      </div>
+      <div class="action-card" onclick="goScreen('scr-taikhoannguon')">
+        <div class="action-icon">💳</div>
+        <span>Tài khoản nguồn</span>
+      </div>
+      <div class="action-card" onclick="goScreen('scr-taikhoan')">
+        <div class="action-icon">⚙️</div>
+        <span>Cài đặt tài khoản</span>
+      </div>
+      <div class="action-card" onclick="goScreen('scr-suathongtin')">
+        <div class="action-icon">✏️</div>
+        <span>Sửa thông tin</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CÀI ĐẶT TÀI KHOẢN (taikhoan.xml - Giống hệt ảnh chụp giữa màn hình) -->
+  <div id="scr-taikhoan" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-main')"></span>
+      <span>Cài đặt tài khoản</span>
+      <span class="close-btn" onclick="goScreen('scr-main')">✕</span>
+    </div>
+
+    <div class="profile-box">
+      <div class="bee-avatar">🐝</div>
+      <div class="profile-info">
+        <div class="p-name" id="lbl-tk-name">ĐOÀN ANH HÀ</div>
+        <div class="p-user">Tên đăng nhập: <span id="lbl-tk-user">0398291038501</span></div>
+      </div>
+    </div>
+
+    <div class="setting-item" onclick="goScreen('scr-suathongtin')">
+      <span>📝 Tùy chỉnh</span>
+      <span>&gt;</span>
+    </div>
+    <div class="setting-item" onclick="alert('Mật khẩu hiện tại: DoanAnhHa@2024')">
+      <span>🔑 Thay đổi mật khẩu</span>
+      <span>&gt;</span>
+    </div>
+    <div class="setting-item" onclick="goScreen('scr-main')">
+      <span>Xoá tài khoản</span>
+      <span>&gt;</span>
+    </div>
+
+    <div class="setting-btns">
+      <button class="btn-blue-rect" onclick="alert('Đang kết nối hỗ trợ trực tuyến MB247...')">CHAT ONLINE</button>
+      <button class="btn-blue-rect" onclick="goScreen('scr-login')">ĐĂNG XUẤT</button>
+    </div>
+  </div>
+
+  <!-- 4. TÀI KHOẢN NGUỒN (taikhoannguon.xml) -->
+  <div id="scr-taikhoannguon" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-main')">&larr;</span>
+      <span>Tài khoản nguồn</span>
+      <span class="close-btn"></span>
+    </div>
+    <div class="card-section">
+      <div style="font-size:13px; color:#666; margin-bottom:4px;">Tài khoản thanh toán</div>
+      <div style="font-size:18px; font-weight:700; color:#141ed2; margin-bottom:8px;" id="lbl-tkn-stk">0398291038501</div>
+      <div style="font-size:14px; font-weight:600; margin-bottom:10px;">Chủ TK: <span id="lbl-tkn-name">ĐOÀN ANH HÀ</span></div>
+      <div style="font-size:13px; color:#666;">Số dư khả dụng:</div>
+      <div style="font-size:22px; font-weight:800; color:#111; margin-top:4px;"><span id="lbl-tkn-bal">50,000,000</span> VND</div>
+    </div>
+  </div>
+
+  <!-- 5. CHUYỂN TIỀN (thongtinchuyentien.xml) -->
+  <div id="scr-chuyentien" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-main')">&larr;</span>
+      <span>Chuyển tiền</span>
+      <span class="close-btn"></span>
+    </div>
+    <div class="card-section">
+      <div class="field">
+        <label>Tài khoản nguồn</label>
+        <input type="text" id="ct-source" value="0398291038501 - ĐOÀN ANH HÀ" readonly style="background:#f3f4f6; font-weight:600;" />
+      </div>
+      <div class="field">
+        <label>Ngân hàng nhận</label>
+        <select id="ct-bank">
+          <option value="MB Bank (Ngân hàng Quân Đội)">MB Bank (Ngân hàng Quân Đội)</option>
+          <option value="Vietcombank (VCB)">Vietcombank (VCB)</option>
+          <option value="Techcombank (TCB)">Techcombank (TCB)</option>
+          <option value="VietinBank (CTG)">VietinBank (CTG)</option>
+          <option value="BIDV">BIDV</option>
+          <option value="Agribank">Agribank</option>
+          <option value="ACB">ACB</option>
+          <option value="VPBank">VPBank</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Số tài khoản người nhận</label>
+        <input type="text" id="ct-to-stk" placeholder="Nhập số tài khoản nhận" value="19038889999" />
+      </div>
+      <div class="field">
+        <label>Tên người nhận</label>
+        <input type="text" id="ct-to-name" placeholder="Nhập tên người nhận" value="NGUYEN VAN B" style="text-transform:uppercase;" />
+      </div>
+      <div class="field">
+        <label>Số tiền (VND)</label>
+        <input type="text" id="ct-amount" placeholder="Ví dụ: 1,500,000" value="1,500,000" />
+      </div>
+      <div class="field">
+        <label>Nội dung chuyển tiền</label>
+        <input type="text" id="ct-msg" value="DOAN ANH HA chuyen tien" />
+      </div>
+      <button class="btn-primary" onclick="goConfirm()">TIẾP TỤC</button>
+    </div>
+  </div>
+
+  <!-- 6. XÁC NHẬN & OTP (xacnhan.xml / otp.xml) -->
+  <div id="scr-xacnhan" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-chuyentien')">&larr;</span>
+      <span>Xác nhận giao dịch</span>
+      <span class="close-btn"></span>
+    </div>
+    <div class="card-section">
+      <div class="bill-row"><span class="b-label">Tài khoản nguồn</span><span class="b-val" id="xn-from">0398291038501 - ĐOÀN ANH HÀ</span></div>
+      <div class="bill-row"><span class="b-label">Ngân hàng nhận</span><span class="b-val" id="xn-bank"></span></div>
+      <div class="bill-row"><span class="b-label">Số TK nhận</span><span class="b-val" id="xn-stk"></span></div>
+      <div class="bill-row"><span class="b-label">Tên người nhận</span><span class="b-val" id="xn-name"></span></div>
+      <div class="bill-row"><span class="b-label">Số tiền</span><span class="b-val" style="color:#141ed2; font-size:16px;" id="xn-amount"></span></div>
+      <div class="bill-row"><span class="b-label">Phí giao dịch</span><span class="b-val">Miễn phí</span></div>
+      <div class="bill-row"><span class="b-label">Nội dung</span><span class="b-val" id="xn-msg"></span></div>
+      <div class="field" style="margin-top:14px;">
+        <label>Mã xác thực Digital OTP</label>
+        <input type="text" value="839204" style="text-align:center; font-weight:700; letter-spacing:6px; font-size:18px;" />
+      </div>
+      <button class="btn-primary" onclick="goBill()">XÁC NHẬN CHUYỂN TIỀN</button>
+    </div>
+  </div>
+
+  <!-- 7. BIÊN LAI GIAO DỊCH (bill.xml) -->
+  <div id="scr-bill" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-main')"></span>
+      <span>Biên lai giao dịch</span>
+      <span class="close-btn" onclick="goScreen('scr-main')">✕</span>
+    </div>
+    <div class="bill-wrap">
+      <div style="font-weight:800; font-size:20px; color:#141ed2; margin-bottom:12px;"><span style="color:#e60012">★</span> MB</div>
+      <div class="bill-check">✓</div>
+      <div class="bill-title">Chuyển tiền thành công</div>
+      <div class="bill-amount" id="bill-amount">1,500,000 VND</div>
+      <div class="bill-time" id="bill-time"></div>
+
+      <div class="bill-divider"></div>
+      <div class="bill-row"><span class="b-label">Tên người thụ hưởng</span><span class="b-val" id="bill-to-name"></span></div>
+      <div class="bill-row"><span class="b-label">Tài khoản thụ hưởng</span><span class="b-val" id="bill-to-stk"></span></div>
+      <div class="bill-row"><span class="b-label">Ngân hàng thụ hưởng</span><span class="b-val" id="bill-bank"></span></div>
+      <div class="bill-divider"></div>
+      <div class="bill-row"><span class="b-label">Tài khoản nguồn</span><span class="b-val" id="bill-from-stk">0398291038501</span></div>
+      <div class="bill-row"><span class="b-label">Chủ tài khoản nguồn</span><span class="b-val" id="bill-from-name">ĐOÀN ANH HÀ</span></div>
+      <div class="bill-row"><span class="b-label">Nội dung</span><span class="b-val" id="bill-msg"></span></div>
+      <div class="bill-row"><span class="b-label">Mã giao dịch</span><span class="b-val" id="bill-code">FT2629384756</span></div>
+
+      <button class="btn-primary" style="margin-top:16px;" onclick="goScreen('scr-main')">HOÀN TẤT</button>
+    </div>
+  </div>
+
+  <!-- 8. SỬA THÔNG TIN (suathongtin.xml) -->
+  <div id="scr-suathongtin" class="screen">
+    <div class="topbar">
+      <span class="back-btn" onclick="goScreen('scr-main')">&larr;</span>
+      <span>Sửa thông tin tài khoản</span>
+      <span class="close-btn"></span>
+    </div>
+    <div class="card-section">
+      <div class="field">
+        <label>Họ và tên chủ tài khoản</label>
+        <input type="text" id="edit-name" value="ĐOÀN ANH HÀ" />
+      </div>
+      <div class="field">
+        <label>Số tài khoản (Tên đăng nhập)</label>
+        <input type="text" id="edit-stk" value="0398291038501" />
+      </div>
+      <div class="field">
+        <label>Số dư hiển thị (VND)</label>
+        <input type="text" id="edit-bal" value="50,000,000" />
+      </div>
+      <button class="btn-primary" onclick="saveProfile()">LƯU THÔNG TIN</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let state = {
+    name: localStorage.getItem('mb_name') || 'ĐOÀN ANH HÀ',
+    stk: localStorage.getItem('mb_stk') || '0398291038501',
+    bal: localStorage.getItem('mb_bal') || '50,000,000'
+  };
+
+  function renderProfile() {
+    document.getElementById('lbl-login-name').innerText = state.name;
+    document.getElementById('lbl-login-stk').innerText = state.stk;
+    document.getElementById('inp-user').value = state.stk;
+    document.getElementById('lbl-main-name').innerText = state.name;
+    document.getElementById('lbl-main-stk').innerText = state.stk;
+    document.getElementById('lbl-main-bal').innerText = state.bal;
+    document.getElementById('lbl-tk-name').innerText = state.name;
+    document.getElementById('lbl-tk-user').innerText = state.stk;
+    document.getElementById('lbl-tkn-name').innerText = state.name;
+    document.getElementById('lbl-tkn-stk').innerText = state.stk;
+    document.getElementById('lbl-tkn-bal').innerText = state.bal;
+    document.getElementById('ct-source').value = state.stk + ' - ' + state.name;
+    document.getElementById('edit-name').value = state.name;
+    document.getElementById('edit-stk').value = state.stk;
+    document.getElementById('edit-bal').value = state.bal;
+  }
+
+  function goScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function saveProfile() {
+    state.name = document.getElementById('edit-name').value.trim().toUpperCase();
+    state.stk = document.getElementById('edit-stk').value.trim();
+    state.bal = document.getElementById('edit-bal').value.trim();
+    localStorage.setItem('mb_name', state.name);
+    localStorage.setItem('mb_stk', state.stk);
+    localStorage.setItem('mb_bal', state.bal);
+    renderProfile();
+    goScreen('scr-main');
+  }
+
+  function goConfirm() {
+    document.getElementById('xn-from').innerText = state.stk + ' - ' + state.name;
+    document.getElementById('xn-bank').innerText = document.getElementById('ct-bank').value;
+    document.getElementById('xn-stk').innerText = document.getElementById('ct-to-stk').value;
+    document.getElementById('xn-name').innerText = document.getElementById('ct-to-name').value.toUpperCase();
+    document.getElementById('xn-amount').innerText = document.getElementById('ct-amount').value + ' VND';
+    document.getElementById('xn-msg').innerText = document.getElementById('ct-msg').value;
+    goScreen('scr-xacnhan');
+  }
+
+  function goBill() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) + ' - ' + now.toLocaleDateString('vi-VN');
+    document.getElementById('bill-time').innerText = timeStr;
+    document.getElementById('bill-amount').innerText = document.getElementById('ct-amount').value + ' VND';
+    document.getElementById('bill-to-name').innerText = document.getElementById('ct-to-name').value.toUpperCase();
+    document.getElementById('bill-to-stk').innerText = document.getElementById('ct-to-stk').value;
+    document.getElementById('bill-bank').innerText = document.getElementById('ct-bank').value;
+    document.getElementById('bill-from-stk').innerText = state.stk;
+    document.getElementById('bill-from-name').innerText = state.name;
+    document.getElementById('bill-msg').innerText = document.getElementById('ct-msg').value;
+    document.getElementById('bill-code').innerText = 'FT' + Math.floor(1000000000 + Math.random() * 9000000000);
+    goScreen('scr-bill');
+  }
+
+  renderProfile();
+</script>
+</body>
+</html>
